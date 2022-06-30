@@ -36,6 +36,7 @@ async function run() {
         .find({})
         .skip(pageNumber * 10)
         .limit(10)
+        .sort("-1")
         .toArray();
       res.send(result);
     });
