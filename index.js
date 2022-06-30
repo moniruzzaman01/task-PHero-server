@@ -15,8 +15,8 @@ app.listen(port, () => {
   console.log("listening from", port);
 });
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
-// const uri = `mongodb+srv://PHero_task_user:pwci1tkDsg2RVXZY@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://PHero_task_user:pwci1tkDsg2RVXZY@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -30,8 +30,15 @@ async function run() {
 
     app.post("/registration", async (req, res) => {});
     app.get("/login", async (req, res) => {});
-    app.get("/billing-list", async (req, res) => {});
-    app.post("/add-billing", async (req, res) => {});
+    app.get("/billing-list", async (req, res) => {
+      const result = await billingCollection.find({}).toArray();
+      res.send(result);
+    });
+    app.post("/add-billing", async (req, res) => {
+      const data = req.body;
+      const result = await billingCollection.insertOne(data);
+      res.send(result);
+    });
     app.post("/update-billing/:id", async (req, res) => {});
     app.post("/delete-billing/:id", async (req, res) => {});
   } finally {
