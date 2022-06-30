@@ -39,7 +39,16 @@ async function run() {
       const result = await billingCollection.insertOne(data);
       res.send(result);
     });
-    app.post("/update-billing/:id", async (req, res) => {});
+    app.put("/update-billing/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const query = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: data,
+      };
+      const result = await billingCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
     app.get("/delete-billing/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
