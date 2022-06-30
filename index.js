@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -40,7 +40,12 @@ async function run() {
       res.send(result);
     });
     app.post("/update-billing/:id", async (req, res) => {});
-    app.post("/delete-billing/:id", async (req, res) => {});
+    app.get("/delete-billing/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await billingCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     // await client.close();
   }
