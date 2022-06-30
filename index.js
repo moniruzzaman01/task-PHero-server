@@ -31,7 +31,12 @@ async function run() {
     app.post("/registration", async (req, res) => {});
     app.get("/login", async (req, res) => {});
     app.get("/billing-list", async (req, res) => {
-      const result = await billingCollection.find({}).toArray();
+      const pageNumber = parseInt(req.query.pageNumber);
+      const result = await billingCollection
+        .find({})
+        .skip(pageNumber * 10)
+        .limit(10)
+        .toArray();
       res.send(result);
     });
     app.post("/add-billing", async (req, res) => {
@@ -54,6 +59,10 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const result = await billingCollection.deleteOne(query);
       res.send(result);
+    });
+    app.get("/numberOfData", async (req, res) => {
+      const number = await billingCollection.estimatedDocumentCount();
+      res.send({ number });
     });
   } finally {
     // await client.close();
