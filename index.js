@@ -1,6 +1,7 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,13 +16,28 @@ app.listen(port, () => {
   console.log("listening from", port);
 });
 
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
-const uri = `mongodb+srv://PHero_task_user:pwci1tkDsg2RVXZY@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jwrz65q.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+function jwtVerify(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header) {
+    return res.send("You have no token to access it.");
+  }
+  const token = header.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decode) => {
+    if (err) {
+      res.send("Forbidden Access");
+    } else {
+      req.decode = decode;
+      next();
+    }
+  });
+}
 
 async function run() {
   try {
@@ -40,12 +56,16 @@ async function run() {
       const PrevUser = await userCollection.findOne(query);
       if (PrevUser) {
         if (PrevUser.email === data.email && PrevUser.pass === data.pass) {
-          return res.send({ success: true });
+          const accessToken = jwt.sign(
+            data.email,
+            process.env.ACCESS_TOKEN_SECRET
+          );
+          return res.send({ accessToken, success: true });
         }
       }
       return res.send({ success: false });
     });
-    app.get("/billing-list", async (req, res) => {
+    app.get("/billing-list", jwtVerify, async (req, res) => {
       const pageNumber = parseInt(req.query.pageNumber);
       const result = await billingCollection
         .find({})
