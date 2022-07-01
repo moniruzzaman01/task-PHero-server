@@ -47,16 +47,25 @@ async function run() {
 
     app.post("/registration", async (req, res) => {
       const data = req.body;
-      const result = await userCollection.insertOne(data);
+      const query = { email: data.email };
+      const isExist = await userCollection.findOne(query);
 
-      if (result.acknowledged === true) {
-        const accessToken = jwt.sign(
-          data.email,
-          process.env.ACCESS_TOKEN_SECRET
-        );
-        return res.send({ accessToken, success: true });
+      if (!isExist) {
+        const result = await userCollection.insertOne(data);
+        if (result.acknowledged === true) {
+          const accessToken = jwt.sign(
+            data.email,
+            process.env.ACCESS_TOKEN_SECRET
+          );
+          return res.send({ accessToken, success: true });
+        }
+        return res.send({ accessToken: "", success: false });
       }
-      res.send({ accessToken, success: true });
+      return res.send({
+        accessToken: "",
+        success: false,
+        message: "This Email is already taken",
+      });
     });
     app.post("/login", async (req, res) => {
       const data = req.body;
@@ -71,7 +80,7 @@ async function run() {
           return res.send({ accessToken, success: true });
         }
       }
-      return res.send({ success: false });
+      return res.send({ success: false, message: "Invalid Email or Password" });
     });
     app.get("/billing-list", jwtVerify, async (req, res) => {
       const pageNumber = parseInt(req.query.pageNumber);
