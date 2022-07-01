@@ -53,9 +53,9 @@ async function run() {
     app.post("/login", async (req, res) => {
       const data = req.body;
       const query = { email: data.email };
-      const PrevUser = await userCollection.findOne(query);
-      if (PrevUser) {
-        if (PrevUser.email === data.email && PrevUser.pass === data.pass) {
+      const savedEmail = await userCollection.findOne(query);
+      if (savedEmail) {
+        if (savedEmail.email === data.email && savedEmail.pass === data.pass) {
           const accessToken = jwt.sign(
             data.email,
             process.env.ACCESS_TOKEN_SECRET
@@ -75,12 +75,20 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/paid-total", jwtVerify, async (req, res) => {
+      const result = await billingCollection.find({}).toArray();
+      let total = 0;
+      result.forEach((data) => {
+        total += parseInt(data.bill);
+      });
+      res.send({ total });
+    });
     app.post("/add-billing", async (req, res) => {
       const data = req.body;
       const result = await billingCollection.insertOne(data);
       res.send(result);
     });
-    app.put("/update-billing/:id", async (req, res) => {
+    app.put("/update-billing/:id", jwtVerify, async (req, res) => {
       const id = req.params.id;
       const data = req.body;
       const query = { _id: ObjectId(id) };
@@ -90,13 +98,13 @@ async function run() {
       const result = await billingCollection.updateOne(query, updateDoc);
       res.send(result);
     });
-    app.get("/delete-billing/:id", async (req, res) => {
+    app.post("/delete-billing/:id", jwtVerify, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await billingCollection.deleteOne(query);
       res.send(result);
     });
-    app.get("/numberOfData", async (req, res) => {
+    app.get("/numberOfData", jwtVerify, async (req, res) => {
       const number = await billingCollection.estimatedDocumentCount();
       res.send({ number });
     });
