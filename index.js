@@ -34,7 +34,17 @@ async function run() {
       const result = await userCollection.insertOne(data);
       res.send(result);
     });
-    app.get("/login", async (req, res) => {});
+    app.post("/login", async (req, res) => {
+      const data = req.body;
+      const query = { email: data.email };
+      const PrevUser = await userCollection.findOne(query);
+      if (PrevUser) {
+        if (PrevUser.email === data.email && PrevUser.pass === data.pass) {
+          return res.send({ success: true });
+        }
+      }
+      return res.send({ success: false });
+    });
     app.get("/billing-list", async (req, res) => {
       const pageNumber = parseInt(req.query.pageNumber);
       const result = await billingCollection
