@@ -48,14 +48,22 @@ async function run() {
     app.post("/registration", async (req, res) => {
       const data = req.body;
       const result = await userCollection.insertOne(data);
-      res.send(result);
+
+      if (result.acknowledged === true) {
+        const accessToken = jwt.sign(
+          data.email,
+          process.env.ACCESS_TOKEN_SECRET
+        );
+        return res.send({ accessToken, success: true });
+      }
+      res.send({ accessToken, success: true });
     });
     app.post("/login", async (req, res) => {
       const data = req.body;
       const query = { email: data.email };
-      const savedEmail = await userCollection.findOne(query);
-      if (savedEmail) {
-        if (savedEmail.email === data.email && savedEmail.pass === data.pass) {
+      const savedUser = await userCollection.findOne(query);
+      if (savedUser) {
+        if (savedUser.email === data.email && savedUser.pass === data.pass) {
           const accessToken = jwt.sign(
             data.email,
             process.env.ACCESS_TOKEN_SECRET
