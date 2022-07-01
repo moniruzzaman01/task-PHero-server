@@ -27,8 +27,13 @@ async function run() {
   try {
     await client.connect();
     const billingCollection = client.db("PHero").collection("billing-list");
+    const userCollection = client.db("PHero").collection("user-info");
 
-    app.post("/registration", async (req, res) => {});
+    app.post("/registration", async (req, res) => {
+      const data = req.body;
+      const result = await userCollection.insertOne(data);
+      res.send(result);
+    });
     app.get("/login", async (req, res) => {});
     app.get("/billing-list", async (req, res) => {
       const pageNumber = parseInt(req.query.pageNumber);
